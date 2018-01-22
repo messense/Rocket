@@ -98,7 +98,13 @@ impl<T: DeserializeOwned> FromData for Json<T> {
         }
 
         let size_limit = request.limits().get("json").unwrap_or(LIMIT);
-        serde_json::from_reader(data.open().take(size_limit))
+        let mut buf = String::new();
+        data.open()
+            .take(size_limit)
+            .read_to_string(&mut buf)
+            .map_err(|e| { error_!("IO Error: {:?}", e); e })
+            .unwrap();
+        serde_json::from_str(&buf)
             .map(|val| Json(val))
             .map_err(|e| { error_!("Couldn't parse JSON body: {:?}", e); e })
             .into_outcome(Status::BadRequest)
