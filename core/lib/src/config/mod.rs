@@ -187,6 +187,7 @@ mod config;
 mod builder;
 mod toml_ext;
 mod custom_values;
+mod address;
 
 use std::fs::{self, File};
 use std::collections::HashMap;
@@ -197,7 +198,7 @@ use std::env;
 
 use toml;
 
-pub use self::custom_values::Limits;
+pub use self::custom_values::{Limits, Port};
 pub use toml::value::{Array, Table, Value, Datetime};
 pub use self::error::ConfigError;
 pub use self::environment::Environment;
@@ -205,6 +206,7 @@ pub use self::config::Config;
 pub use self::builder::ConfigBuilder;
 pub use crate::logger::LoggingLevel;
 crate use self::toml_ext::LoggedValue;
+pub use self::address::Address;
 
 use crate::logger;
 use self::Environment::*;
@@ -1096,8 +1098,8 @@ mod test {
         let check_value = |key: &str, val: &str, config: &Config| {
             match key {
                 "log" => assert_eq!(config.log_level, val.parse().unwrap()),
-                "port" => assert_eq!(config.port, val.parse().unwrap()),
-                "address" => assert_eq!(config.address, val),
+                "port" => assert_eq!(*config.port, val.parse().unwrap()),
+                "address" => assert_eq!(&config.address.to_string(), val),
                 "extra_extra" => assert_eq!(config.get_bool(key).unwrap(), true),
                 "workers" => assert_eq!(config.workers, val.parse().unwrap()),
                 _ => panic!("Unexpected key: {}", key)
