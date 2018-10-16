@@ -1,3 +1,7 @@
+os:
+  - linux
+  - osx
+  - windows
 language: rust
 sudo: required # so we get a VM with higher specs
 dist: trusty # so we get a VM with higher specs
