@@ -4,7 +4,10 @@ use std::io::{self, Read, Write};
 use std::path::Path;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::time::Duration;
+#[cfg(unix)]
 use std::os::unix::net::{UnixListener, UnixStream};
+#[cfg(windows)]
+use uds_windows::{UnixListener, UnixStream};
 
 use crate::hyper;
 use crate::hyper::net::{NetworkStream, NetworkListener};
@@ -29,12 +32,26 @@ impl NetworkStream for UnixSocketStream {
 
     #[inline]
     fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
-        self.0.set_read_timeout(dur)
+        #[cfg(unix)]
+        {
+            self.0.set_read_timeout(dur)
+        }
+        #[cfg(windows)]
+        {
+            Ok(())
+        }
     }
 
     #[inline]
     fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
-        self.0.set_write_timeout(dur)
+        #[cfg(unix)]
+        {
+            self.0.set_write_timeout(dur)
+        }
+        #[cfg(windows)]
+        {
+            Ok(())
+        }
     }
 }
 

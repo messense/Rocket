@@ -26,7 +26,7 @@ pub fn lock_socket<P: AsRef<Path>>(path: P) -> Result<File, LaunchError> {
     Ok(lock_file)
 }
 
-#[cfg(all(unix, not(feature = "tls")))]
+#[cfg(not(feature = "tls"))]
 macro_rules! serve_unix_socket {
     ($rocket:expr, |$server:ident, $proto:ident| $continue:expr) => ({
         use $crate::http::unix::UnixSocketServer;
@@ -43,7 +43,7 @@ macro_rules! serve_unix_socket {
     })
 }
 
-#[cfg(all(unix, feature = "tls"))]
+#[cfg(feature = "tls")]
 macro_rules! serve_unix_socket {
     ($rocket:expr, |$server:ident, $proto:ident| $continue:expr) => ({
         use $crate::http::unix::UnixSocketServer;

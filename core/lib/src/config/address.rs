@@ -29,14 +29,10 @@ impl FromStr for Address {
     type Err = io::Error;
 
     fn from_str(string: &str) -> io::Result<Self> {
-        #[cfg(unix)]
-        {
-            if string.starts_with(Address::UNIX_PREFIX) {
-                let address = &string[Address::UNIX_PREFIX.len()..];
-                return Ok(Address::Unix(address.into()));
-            }
+        if string.starts_with(Address::UNIX_PREFIX) {
+            let address = &string[Address::UNIX_PREFIX.len()..];
+            return Ok(Address::Unix(address.into()));
         }
-
         if (string, 0).to_socket_addrs()?.next().is_some() {
             if let Ok(ip) = IpAddr::from_str(string) {
                 return Ok(Address::Ip(ip));

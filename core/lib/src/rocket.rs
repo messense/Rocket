@@ -94,35 +94,31 @@ impl hyper::Handler for Rocket {
 #[cfg(not(feature = "tls"))]
 macro_rules! serve {
     ($rocket:expr, |$server:ident, $proto:ident| $continue:expr) => ({
-        #[cfg(unix)]
-        {
-            if $rocket.config.address.is_unix() {
-                serve_unix_socket!($rocket, |$server, $proto| $continue);
-            }
+        if $rocket.config.address.is_unix() {
+            serve_unix_socket!($rocket, |$server, $proto| $continue);
+        } else {
+            let addr = $rocket.config.full_address();
+            let ($proto, $server) = ("http://", hyper::Server::http(addr));
+            $continue
         }
-        let addr = $rocket.config.full_address();
-        let ($proto, $server) = ("http://", hyper::Server::http(addr));
-        $continue
     })
 }
 
 #[cfg(feature = "tls")]
 macro_rules! serve {
     ($rocket:expr, |$server:ident, $proto:ident| $continue:expr) => ({
-        #[cfg(unix)]
-        {
-            if $rocket.config.address.is_unix() {
-                serve_unix_socket!($rocket, |$server, $proto| $continue);
-            }
-        }
-        let addr = $rocket.config.full_address();
-        if let Some(tls) = $rocket.config.tls.clone() {
-            let tls = TlsServer::new(tls.certs, tls.key);
-            let ($proto, $server) = ("https://", hyper::Server::https(addr, tls));
-            $continue
+        if $rocket.config.address.is_unix() {
+            serve_unix_socket!($rocket, |$server, $proto| $continue);
         } else {
-            let ($proto, $server) = ("http://", hyper::Server::http(addr));
-            $continue
+            let addr = $rocket.config.full_address();
+            if let Some(tls) = $rocket.config.tls.clone() {
+                let tls = TlsServer::new(tls.certs, tls.key);
+                let ($proto, $server) = ("https://", hyper::Server::https(addr, tls));
+                $continue
+            } else {
+                let ($proto, $server) = ("http://", hyper::Server::http(addr));
+                $continue
+            }
         }
     })
 }
